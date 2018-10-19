@@ -10,7 +10,6 @@
   using System.Reflection;
   using Sitecore.Analytics.Model;
   using Sitecore.Analytics.Tracking;
-  using Sitecore.Support.ExperienceAnalytics.Aggregation.Rules.AggregationAdaptor;
 
 
   /// <summary>Defines the when subitem of class.</summary>
@@ -51,13 +50,14 @@
         return false;
       }
 
-      return GetPages(Tracker.Current.Session.Interaction).Any(row => row.Item.Id == pageGuid);
+      return GetPages(Tracker.Current.Session.Interaction).Any(page => page.Item.Id == pageGuid);
     }
 
     // Sitecore.Support.Analytics.Rules.Conditions.HasVisitedPageCondition<T>
-    public IEnumerable<IPageContext> GetPages(CurrentInteraction interaction)
+    public IEnumerable<PageData> GetPages(CurrentInteraction interaction)
     {
-      return this.GetVisitData(interaction).Pages.ConvertAll<AggregationPageContext>((PageData p) => new AggregationPageContext(p));
+      return
+        this.GetVisitData(interaction).Pages; //.ConvertAll<AggregationPageContext>((PageData p) => new AggregationPageContext(p));
     }
 
     // Sitecore.Support.Analytics.Rules.Conditions.HasVisitedPageCondition<T>
