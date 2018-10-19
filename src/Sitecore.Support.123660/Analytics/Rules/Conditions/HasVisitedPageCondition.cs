@@ -6,6 +6,12 @@
   using Sitecore.Diagnostics;
   using Sitecore.Rules;
   using Sitecore.Rules.Conditions;
+  using System.Collections.Generic;
+  using System.Reflection;
+  using Sitecore.Analytics.Model;
+  using Sitecore.Analytics.Tracking;
+  using Sitecore.Support.ExperienceAnalytics.Aggregation.Rules.AggregationAdaptor;
+
 
   /// <summary>Defines the when subitem of class.</summary>
   /// <typeparam name="T">The rule context.</typeparam>
@@ -45,8 +51,28 @@
         return false;
       }
 
-      return Tracker.Current.Session.Interaction.GetPages().Any(row => row.Item.Id == pageGuid);
+      return GetPages(Tracker.Current.Session.Interaction).Any(row => row.Item.Id == pageGuid);
     }
+
+    // Sitecore.Support.Analytics.Rules.Conditions.HasVisitedPageCondition<T>
+    public IEnumerable<IPageContext> GetPages(CurrentInteraction interaction)
+    {
+      return this.GetVisitData(interaction).Pages.ConvertAll<AggregationPageContext>((PageData p) => new AggregationPageContext(p));
+    }
+
+    // Sitecore.Support.Analytics.Rules.Conditions.HasVisitedPageCondition<T>
+    private VisitData GetVisitData(CurrentInteraction interaction)
+    {
+      Type type = interaction.GetType();
+      PropertyInfo propertyInfo = null;
+      while (propertyInfo == null)
+      {
+        propertyInfo = type.GetProperty("VisitData", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        type = type.BaseType;
+      }
+      return (VisitData)propertyInfo.GetValue(interaction);
+    }
+
 
     #endregion
   }
